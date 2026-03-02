@@ -3,214 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduSense | Unified Intelligence Ecosystem</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <title>EduSense | Інтелектуальна екосистема</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 </head>
 <body>
-    <canvas id="neural-net"></canvas>
-    <div class="ambient-glow"></div>
+    <div class="grid-bg"></div>
+    <div class="ambient-orb orb-left"></div>
+    <div class="ambient-orb orb-right"></div>
 
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo"><div class="logo-mark"></div> EduSense</div>
             <div class="nav-links">
-                <a href="#vision">Візія</a>
-                <a href="#features">Екосистема</a>
-                <a href="#management">Управління</a>
-                <a href="/docs" class="btn-portal">Client Portal ↗</a>
+                <a href="#interface">Інтерфейс</a>
+                <a href="#modules">Модулі</a>
+                <a href="#alerts">Сповіщення</a>
+                <a href="#pricing">Підписки</a>
             </div>
+            <a href="/docs" class="btn-primary small">Вхід у кабінет</a>
         </div>
     </nav>
 
     <header class="hero">
-        <div class="hero-content reveal">
-            <div class="badge">Edge AI Framework</div>
-            <h1>Стандарт закладу <br><span class="gradient-text">нового покоління</span></h1>
-            <p class="hero-subtitle">EduSense об’єднує критичну інфраструктуру: від Live-подкастів та моніторингу повітря до автономної безпеки та динамічної евакуації.</p>
-            <div class="hero-btns">
-                <a href="#vision" class="btn btn-main">Трансформувати простір</a>
+        <div class="container hero-content reveal-up">
+            <div class="badge">The Smart School Standard</div>
+            <h1>Інтелектуальний простір.<br><span class="text-gradient">Абсолютний контроль.</span></h1>
+            <p class="hero-desc">Єдина хмарна екосистема, що поєднує Live-комунікацію, безкомпромісну безпеку, динамічну евакуацію та прецизійний моніторинг клімату. Керуйте закладом з будь-якої точки світу.</p>
+            <div class="hero-actions">
+                <a href="#interface" class="btn-primary btn-lg">Огляд системи</a>
             </div>
         </div>
     </header>
 
-    <section id="vision" class="section">
-        <div class="section-title reveal">
-            <h2>The Great Leap</h2>
-            <p>Від застарілих стандартів до технологій майбутнього.</p>
-        </div>
+    <section id="interface" class="section preview-section">
+        <div class="container">
+            <div class="section-title reveal-up">
+                <h2>Ваш командний центр</h2>
+                <p>Уся телеметрія, налаштування розкладів та управління доступом в одному елегантному інтерфейсі.</p>
+            </div>
 
-        <div class="comparison-gridreveal" id="spotlight-group">
-            <div class="comp-box legacy-mode tilt-card">
-                <div class="card-glow"></div>
-                <div class="comp-tag">Analog Past</div>
-                <h3>Механічне середовище</h3>
-                <ul class="comp-list">
-                    <li>Дзвінки за розкладом без сповіщень</li>
-                    <li>Паперові плани, невидимі в паніці</li>
-                    <li>Повна зупинка під час блекауту</li>
-                    <li>Розрізнені датчики без управління</li>
-                </ul>
-            </div>
-            <div class="comp-vs">VS</div>
-            <div class="comp-box modern-mode highlight tilt-card">
-                <div class="card-glow"></div>
-                <div class="comp-tag highlight">EduSense</div>
-                <h3>Інтелектуальна екосистема</h3>
-                <ul class="comp-list">
-                    <li>Цифровий аудіо-хаб: подкасти та тривоги</li>
-                    <li>Динамічна світлова навігація до виходу</li>
-                    <li>Total Autonomy: власні джерела живлення</li>
-                    <li>Хмарне управління та Real-time аналітика</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section id="sensors" class="section">
-        <div class="section-title reveal">
-            <h2>Тотальна сенсорика</h2>
-            <p>Прецизійний контроль кожного параметра середовища.</p>
-        </div>
-        <div class="sensor-grid" id="sensor-spotlight">
-            <div class="sensor-item reveal tilt-card">
-                <div class="card-glow"></div>
-                <div class="s-icon">🌡️</div>
-                <h4>Мікроклімат</h4>
-                <p>Моніторинг температури та вологості для ідеальних умов навчання.</p>
-            </div>
-            <div class="sensor-item reveal delay-1 tilt-card">
-                <div class="card-glow"></div>
-                <div class="s-icon">🌬️</div>
-                <h4>Якість повітря</h4>
-                <p>Аналіз рівня CO2 та виявлення угарного газу (CO).</p>
-            </div>
-            <div class="sensor-item reveal delay-2 tilt-card">
-                <div class="card-glow"></div>
-                <div class="s-icon">💡</div>
-                <h4>Освітлення</h4>
-                <p>Контроль рівня освітленості для запобігання втомі очей.</p>
-            </div>
-            <div class="sensor-item reveal delay-3 tilt-card">
-                <div class="card-glow"></div>
-                <div class="s-icon">👣</div>
-                <h4>Рух та присутність</h4>
-                <p>Датчики руху для автоматизації охорони та енергозбереження.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="ecosystem" class="section gray-bg">
-        <div class="section-title reveal">
-            <h2>Платформа можливостей</h2>
-            <p>Модульна система, що масштабується разом з вами.</p>
-        </div>
-
-        <div class="bento-grid">
-            <div class="bento-card large reveal">
-                <div class="card-content">
-                    <span class="tag">Комунікація</span>
-                    <h3>The Pulse: Live-аудіо</h3>
-                    <p>Створюйте <b>Live-подкасти</b> та транслюйте оголошення. Система автоматично транслює сигнал <b>повітряної тривоги</b> в кожну аудиторію.</p>
+            <div class="macos-window reveal-up delay-1">
+                <div class="window-header">
+                    <div class="window-controls"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+                    <div class="window-title">EduSense Cloud Console</div>
                 </div>
-                <div class="visual-audio"></div>
+                <div class="window-body">
+                    <div class="dash-sidebar">
+                        <div class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Головна</div>
+                        <div class="nav-item"><i class="fa-solid fa-temperature-half"></i> Мікроклімат</div>
+                        <div class="nav-item"><i class="fa-solid fa-shield-halved"></i> Безпека</div>
+                        <div class="nav-item"><i class="fa-solid fa-microphone-lines"></i> Аудіо-Хаб</div>
+                        <div class="nav-item"><i class="fa-solid fa-gear"></i> Налаштування</div>
+                    </div>
+                    <div class="dash-content">
+                        <div class="dash-topbar">
+                            <h3>Гімназія №1 (Корпус А)</h3>
+                            <div class="dash-status"><span class="pulse-dot"></span> Всі вузли онлайн</div>
+                        </div>
+                        <div class="dash-grid-top">
+                            <div class="stat-card">
+                                <div class="stat-icon text-orange"><i class="fa-solid fa-temperature-full"></i></div>
+                                <div><div class="stat-val">22.4°C</div><div class="stat-name">Сер. температура</div></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon text-green"><i class="fa-solid fa-wind"></i></div>
+                                <div><div class="stat-val">450 ppm</div><div class="stat-name">Рівень CO2 (Оптимально)</div></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon text-blue"><i class="fa-solid fa-server"></i></div>
+                                <div><div class="stat-val">42 / 42</div><div class="stat-name">Сенсорів активно</div></div>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Динаміка якості повітря (Сьогодні)</h4>
+                            <div class="css-chart">
+                                <div class="bar-col"><div class="bar" style="height: 30%"></div><span>08:00</span></div>
+                                <div class="bar-col"><div class="bar" style="height: 50%"></div><span>10:00</span></div>
+                                <div class="bar-col"><div class="bar alert" style="height: 85%"></div><span>12:00</span></div>
+                                <div class="bar-col"><div class="bar" style="height: 40%"></div><span>14:00</span></div>
+                                <div class="bar-col"><div class="bar" style="height: 35%"></div><span>16:00</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="alerts" class="section bg-gray">
+        <div class="container mobile-split">
+            <div class="mobile-text reveal-up">
+                <div class="icon-wrap red mb-4"><i class="fa-solid fa-bell"></i></div>
+                <h2>Система миттєвого реагування</h2>
+                <p class="mb-4">Ми перенесли безпеку у реальний час. EduSense не чекає — вона діє. Система дублює критичні події на всі кінцеві пристрої та в кишені відповідальних осіб.</p>
+                <ul class="rich-list">
+                    <li><i class="fa-solid fa-tower-broadcast text-blue"></i> <b>Повітряна тривога:</b> Автоматичне увімкнення сирени та світлової навігації.</li>
+                    <li><i class="fa-solid fa-fire text-red"></i> <b>Пожежна безпека:</b> Датчики диму миттєво активують протокол евакуації.</li>
+                    <li><i class="fa-solid fa-mobile-screen text-blue"></i> <b>Push-сповіщення:</b> Сповіщення охорони про відкриття дверей у позаурочний час.</li>
+                </ul>
             </div>
             
-            <div class="bento-card reveal delay-1">
-                <span class="tag">Евакуація</span>
-                <h3>Smart Exit Control</h3>
-                <p>Світлова навігація евакуації: аналізує місце загрози та будує безпечний шлях.</p>
-            </div>
-
-            <div class="bento-card large reveal delay-2">
-                <div class="card-content">
-                    <span class="tag">Управління</span>
-                    <h3>Cloud Fleet Management</h3>
-                    <p>Керуйте сотнями вузлів з єдиного кабінету. Масові оновлення прошивок "по повітрю" (OTA) одним кліком.</p>
+            <div class="mobile-visual reveal-up delay-1">
+                <div class="phone-mockup">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="phone-time">09:41</div>
+                        <div class="push-stack">
+                            <div class="push-card critical push-anim-1">
+                                <div class="push-header"><i class="fa-solid fa-triangle-exclamation"></i> УВАГА: ТРИВОГА</div>
+                                <div class="push-body">Повітряна тривога! Активовано протокол евакуації. Маршрутизацію увімкнено.</div>
+                            </div>
+                            <div class="push-card warning push-anim-2">
+                                <div class="push-header"><i class="fa-solid fa-wind"></i> Клімат-контроль</div>
+                                <div class="push-body">Кабінет 302: Перевищено рівень CO2 (1200 ppm). Рекомендовано провітрювання.</div>
+                            </div>
+                            <div class="push-card info push-anim-3">
+                                <div class="push-header"><i class="fa-solid fa-door-open"></i> Охорона</div>
+                                <div class="push-body">Зафіксовано рух у спортивній залі. Система переведена в режим спостереження.</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="visual-fleet"></div>
             </div>
         </div>
     </section>
 
-    <footer>
-        <div class="footer-content">
-            <div class="logo">EduSense Systems</div>
-            <p>Unified Intelligence Platform &copy; 2026. Усі права захищено.</p>
+    <section id="modules" class="section">
+        <div class="container">
+            <div class="section-title reveal-up">
+                <h2>Апаратна досконалість</h2>
+                <p>Пристрої, які працюють навіть тоді, коли все інше вимикається.</p>
+            </div>
+            <div class="hw-grid">
+                <div class="hw-card reveal-up">
+                    <div class="hw-icon"><i class="fa-solid fa-battery-full"></i></div>
+                    <h3>Абсолютна автономність</h3>
+                    <p>Кожен критичний вузол має вбудоване джерело живлення (UPS). Моніторинг та світлова індикація працюють навіть після повного знеструмлення закладу.</p>
+                </div>
+                <div class="hw-card reveal-up delay-1">
+                    <div class="hw-icon"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Custom Hardware</h3>
+                    <p>Ми не використовуємо "коробкові" рішення. Можливість розробки індивідуальних кінцевих пристроїв та архітектури під конкретні задачі вашого закладу.</p>
+                </div>
+                <div class="hw-card reveal-up delay-2">
+                    <div class="hw-icon"><i class="fa-solid fa-lock"></i></div>
+                    <h3>Захищена архітектура</h3>
+                    <p>Протоколи шифрування військового стандарту між Edge-пристроями та хмарою. Дані вашого закладу надійно ізольовані від зовнішнього втручання.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="section bg-gray">
+        <div class="container">
+            <div class="section-title reveal-up">
+                <h2>Гнучка політика підписок</h2>
+                <p>Обирайте лише ті модулі, які потрібні вашому закладу саме зараз. Масштабуйтесь у будь-який момент.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="pricing-card reveal-up">
+                    <div class="p-header">
+                        <h3>Core</h3>
+                        <p>Базовий моніторинг клімату</p>
+                    </div>
+                    <ul class="p-features">
+                        <li><i class="fa-solid fa-check"></i> Температура та вологість</li>
+                        <li><i class="fa-solid fa-check"></i> Дашборд керівника</li>
+                        <li><i class="fa-solid fa-check"></i> Базова аналітика (7 днів)</li>
+                        <li class="disabled"><i class="fa-solid fa-xmark"></i> Аудіо-сповіщення</li>
+                        <li class="disabled"><i class="fa-solid fa-xmark"></i> Датчики руху та диму</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-card popular reveal-up delay-1">
+                    <div class="popular-badge">Найбільш збалансований</div>
+                    <div class="p-header">
+                        <h3>Advanced Safety</h3>
+                        <p>Повний комплекс безпеки + Клімат</p>
+                    </div>
+                    <ul class="p-features">
+                        <li><i class="fa-solid fa-check"></i> <b>Все з тарифу Core</b></li>
+                        <li><i class="fa-solid fa-check"></i> Якість повітря (CO2)</li>
+                        <li><i class="fa-solid fa-check"></i> Інтерактивний Аудіо-хаб</li>
+                        <li><i class="fa-solid fa-check"></i> Дублювання повітряної тривоги</li>
+                        <li><i class="fa-solid fa-check"></i> Сповіщення охорони (Telegram/Web)</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-card reveal-up delay-2">
+                    <div class="p-header">
+                        <h3>Enterprise Custom</h3>
+                        <p>Рішення під індивідуальний проєкт</p>
+                    </div>
+                    <ul class="p-features">
+                        <li><i class="fa-solid fa-check"></i> <b>Всі доступні модулі</b></li>
+                        <li><i class="fa-solid fa-check"></i> Динамічна світлова евакуація</li>
+                        <li><i class="fa-solid fa-check"></i> Апаратна автономність (UPS)</li>
+                        <li><i class="fa-solid fa-check"></i> Розробка унікальних датчиків</li>
+                        <li><i class="fa-solid fa-check"></i> Виділений сервер (On-Premise)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <div class="logo-mark small"></div> EduSense
+            </div>
+            <div class="footer-text">
+                <p>EduSense Cloud Platform &copy; 2026. Всі права захищено.</p>
+            </div>
         </div>
     </footer>
 
     <script>
-        // Анімація появи
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('active');
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+        gsap.registerPlugin(ScrollTrigger);
 
-        // Ефект "Ліхтарика" (Spotlight)
-        const applySpotlight = (groupId) => {
-            const group = document.getElementById(groupId);
-            group.onmousemove = e => {
-                for(const card of group.getElementsByClassName("tilt-card")) {
-                    const rect = card.getBoundingClientRect(),
-                          x = e.clientX - rect.left,
-                          y = e.clientY - rect.top;
-                    card.style.setProperty("--mouse-x", `${x}px`);
-                    card.style.setProperty("--mouse-y", `${y}px`);
+        // Поява елементів
+        gsap.utils.toArray('.reveal-up').forEach(elem => {
+            gsap.fromTo(elem, 
+                { y: 40, opacity: 0 }, 
+                { 
+                    y: 0, opacity: 1, duration: 0.8, ease: "power3.out",
+                    scrollTrigger: { trigger: elem, start: "top 85%", toggleActions: "play none none reverse" }
                 }
-            };
-        };
-        applySpotlight('spotlight-group');
-        applySpotlight('sensor-spotlight');
-
-        // Ефект 3D Нахилу (Tilt)
-        document.querySelectorAll('.tilt-card').forEach(card => {
-            card.addEventListener('mousemove', e => {
-                const rect = card.getBoundingClientRect(),
-                      x = e.clientX - rect.left,
-                      y = e.clientY - rect.top,
-                      rotateX = ((y - rect.height/2) / (rect.height/2)) * -5,
-                      rotateY = ((x - rect.width/2) / (rect.width/2)) * 5;
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-            });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-            });
+            );
         });
 
-        // Інтерактивний фон мережі
-        const canvas = document.getElementById('neural-net');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        let atoms = [];
-
-        class Atom {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.speedX = Math.random() * 0.4 - 0.2;
-                this.speedY = Math.random() * 0.4 - 0.2;
+        // Анімація Push-сповіщень на телефоні
+        const pushCards = gsap.utils.toArray('.push-card');
+        ScrollTrigger.create({
+            trigger: ".phone-mockup",
+            start: "top 70%",
+            onEnter: () => {
+                gsap.to(pushCards, {
+                    y: 0, opacity: 1, duration: 0.5, stagger: 0.4, ease: "back.out(1.2)"
+                });
             }
-            update() {
-                this.x += this.speedX; this.y += this.speedY;
-                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-            }
-            draw() {
-                ctx.fillStyle = '#0066cc11'; ctx.beginPath();
-                ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2); ctx.fill();
-            }
-        }
-        function init() { for (let i = 0; i < 100; i++) atoms.push(new Atom()); }
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            atoms.forEach(a => { a.update(); a.draw(); });
-            requestAnimationFrame(animate);
-        }
-        init(); animate();
+        });
     </script>
 </body>
 </html>
