@@ -53,6 +53,7 @@ edusense/
 │   ├── mosquitto/          # Конфігурації брокера повідомлень та ACL
 │   └── postgres_init/      # Скрипти ініціалізації БД
 └── docker-compose.yml      # Головний оркестратор екосистеми
+```
 
 Розгортання (Development Environment)
 Для розгортання локальної версії платформи необхідні Docker та Docker Compose.
