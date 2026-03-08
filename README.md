@@ -60,21 +60,24 @@ edusense/
 
 Клонування репозиторію:
 
-Bash
+```Bash
 git clone [https://github.com/yekhomenkowork/edusense.git](https://github.com/yekhomenkowork/edusense.git)
 cd edusense
+```
 Налаштування оточення:
 Створіть файл змінних оточення з наданого шаблону.
 
-Bash
+```Bash
 cp example.env .env
+```
 Увага: Відредагуйте .env файл, вказавши надійні паролі для PostgreSQL та MQTT брокера перед запуском.
 
 Запуск екосистеми:
 Ініціалізація та збірка всіх контейнерів у фоновому режимі:
 
-Bash
+```Bash
 docker compose up -d --build
+```
 Доступ до сервісів:
 
 Web Interface: http://localhost:80 (через Nginx)
