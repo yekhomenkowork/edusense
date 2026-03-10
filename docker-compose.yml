@@ -68,23 +68,14 @@ services:
     networks:
       - backend_net
 
-  nginx:
-    image: nginx:stable-alpine
-    container_name: edusense_proxy
+  frontend:
+    build: ./frontend
+    container_name: edusense_frontend
     restart: always
     ports:
       - "80:80"
-    volumes:
-      # Змінено шлях до конфігу Nginx та папки з новим Apple-style сайтом
-      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./frontend:/usr/share/nginx/html:ro
     depends_on:
-      db:
-        condition: service_healthy
-      mosquitto:
-        condition: service_started
-      backend:
-        condition: service_started
+      - backend
     networks:
       - frontend_net
       - backend_net

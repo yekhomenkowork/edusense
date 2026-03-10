@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3b82f6;
+}
+
+body {
+  background-color: #09090b; /* Глибокий темний колір, як у Apple/Vercel */
+  color: #fafafa;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
