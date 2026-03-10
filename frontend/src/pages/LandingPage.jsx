@@ -39,7 +39,7 @@ export default function LandingPage() {
             <a href="#pricing" className="hover:text-white transition-colors">Підписка</a>
           </div>
           <div className="flex gap-4 items-center">
-            <button className="hidden sm:block text-sm font-medium text-gray-300 hover:text-white transition-colors">Демо</button>
+            <a href="/demo" className="hidden sm:block text-sm font-medium text-gray-300 hover:text-white transition-colors">Демо</a>
             <a href="/login" className="px-5 py-2.5 text-sm font-semibold text-white bg-white/10 border border-white/10 rounded-full hover:bg-white/20 transition-all flex items-center gap-2"><Lock size={14} /> Вхід</a>
           </div>
         </div>
