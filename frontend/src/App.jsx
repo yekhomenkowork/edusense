@@ -9,6 +9,7 @@ import AdminSchoolsPage from './pages/AdminSchoolsPage';
 import AdminSchoolDetailsPage from './pages/AdminSchoolDetailsPage'; // <--- НОВИЙ ІМПОРТ
 import AdminBillingPage from './pages/AdminBillingPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
+import AdminApiIntegrationsPage from './pages/AdminApiIntegrationsPage';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           
           <Route path="billing" element={<AdminBillingPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="api" element={<AdminApiIntegrationsPage />} />
         </Route>
       </Routes>
     </Router>
