@@ -190,10 +190,16 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
+      {/* Оновлений футер з потрібним текстом */}
       <footer className="border-t border-white/5 bg-[#09090b] pt-12 pb-8 px-6 text-gray-500">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2 font-bold text-white text-lg"><Activity size={20} className="text-blue-500" /> EduSense</div>
-          <p className="text-sm">© 2026 EduSense Cloud Platform. Всі права захищено.</p>
+          
+          <div className="text-center">
+            <p className="text-sm">© 2026 EduSense Cloud Platform. Всі права захищено.</p>
+            <p className="text-sm mt-1">Автор ідеї та функціонального прототипу: <strong className="text-gray-300">Yevhenii Khomenko</strong></p>
+          </div>
+          
           <div className="flex gap-6 text-sm">
             <a href="#" className="hover:text-white transition-colors">Документація</a>
             <a href="#" className="hover:text-white transition-colors">Swagger API</a>
