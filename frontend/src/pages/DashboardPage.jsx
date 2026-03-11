@@ -217,8 +217,8 @@ const SchoolAdminDashboard = ({ user }) => {
 
       {/* МОДАЛКА: ПОВНА АНАЛІТИКА ДАТЧИКІВ */}
       {isSensorsModalOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-8 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[#121214] border border-white/10 rounded-3xl w-full h-full max-w-7xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[#121214] border border-white/10 rounded-3xl w-full h-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
               <h2 className="text-xl font-bold text-white flex items-center gap-2"><Wind className="text-emerald-400" /> Центр аналітики мікроклімату</h2>
               <button onClick={() => setIsSensorsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors"><X size={24} /></button>
@@ -301,7 +301,7 @@ const SchoolAdminDashboard = ({ user }) => {
 
       {/* МОДАЛКА: ПОВНИЙ РОЗКЛАД */}
       {isScheduleModalOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-8 bg-black/80 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 bg-black/80 backdrop-blur-sm animate-in fade-in">
           <div className="bg-[#121214] border border-white/10 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
               <h2 className="text-xl font-bold text-white flex items-center gap-2"><ListMusic className="text-purple-400" /> Редактор розкладу</h2>

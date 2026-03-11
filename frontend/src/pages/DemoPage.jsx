@@ -1,80 +1,88 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { Shield, LayoutDashboard, Users, ArrowLeft } from 'lucide-react';
 
 export default function DemoPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    let role = 'staff';
-    let name = 'Охоронець / Працівник';
+  const handleDemoLogin = (roleName, roleType) => {
+    // Створюємо "фейкового" користувача з потрібною роллю
+    useAuthStore.setState({
+      user: {
+        id: 999,
+        name: roleName,
+        email: `demo_${roleType}@school.com`,
+        role: roleType,
+        school_id: roleType === 'sysadmin' ? null : 1
+      },
+      token: 'demo-fake-jwt-token-12345',
+      isAuthenticated: true,
+      rememberMe: false
+    });
 
-    if (email.includes('sys')) {
-      role = 'system_admin';
-      name = 'Головний Адміністратор';
-    } else if (email.includes('staff')) {
-      role = 'staff';
-      name = 'Старший охоронець';
-    } else if (email.includes('school')) {
-      role = 'school_admin';
-      name = 'Директор Школи №1';
+    // Перекидаємо на правильний стартовий маршрут залежно від ролі
+    if (roleType === 'sysadmin') {
+      navigate('/dashboard/schools');
+    } else if (roleType === 'staff') {
+      navigate('/dashboard/guard');
+    } else {
+      navigate('/dashboard'); // Директор
     }
-
-    login({ id: 1, name, email, role, schoolId: role === 'system_admin' ? null : 101 });
-    navigate('/dashboard');
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center relative overflow-hidden font-sans">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none"></div>
+    <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none"></div>
+
+      <button 
+        onClick={() => navigate('/')} 
+        className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors z-10"
+      >
+        <ArrowLeft size={20} /> На головну
+      </button>
       
-      <div className="w-full max-w-md p-8 relative z-10">
-        <div className="flex flex-col items-center mb-8">
-          <a href="/" className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)] mb-6 hover:scale-105 transition-transform">
-            <Sparkles size={24} className="text-white" />
-          </a>
-          <h1 className="text-3xl font-bold text-white mb-2">Демо-доступ</h1>
-          <p className="text-gray-400 text-center">Протестуйте інтерфейс з різними правами</p>
-        </div>
-
-        <div className="mb-6 p-5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-sm text-purple-200">
-          <span className="font-bold text-purple-400 block mb-2">Оберіть роль (пароль будь-який):</span>
-          <ul className="space-y-2 opacity-80 cursor-pointer">
-            <li onClick={() => setEmail('sys@admin.com')} className="hover:text-white transition-colors flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>sys@admin.com <span className="text-xs opacity-50">(Sys Admin)</span></li>
-            <li onClick={() => setEmail('school@admin.com')} className="hover:text-white transition-colors flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>school@admin.com <span className="text-xs opacity-50">(School Admin)</span></li>
-            <li onClick={() => setEmail('staff@school.com')} className="hover:text-white transition-colors flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>staff@school.com <span className="text-xs opacity-50">(Staff)</span></li>
-          </ul>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-5 bg-[#121214]/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 shadow-2xl">
-          <div>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="Email для демо" />
-            </div>
-          </div>
-          <div>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-purple-500 transition-colors" placeholder="Будь-який пароль" />
-            </div>
-          </div>
-          <button type="submit" className="w-full py-3.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-500 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.3)] mt-4">
-            Увійти в Демо <ArrowRight size={18} />
-          </button>
-        </form>
+      <div className="max-w-2xl w-full text-center mb-12 relative z-10">
+        <h1 className="text-4xl font-bold mb-4">Демонстраційний режим</h1>
+        <p className="text-gray-400">Оберіть роль для входу в систему. Інтерфейс та меню автоматично адаптуються під ваші права доступу.</p>
       </div>
 
-      {/* АВТОРСЬКИЙ ПІДВАЛ (АБСОЛЮТНЕ ПОЗИЦІЮВАННЯ ВНИЗУ) */}
-      <div className="absolute bottom-6 w-full text-center z-10 px-4">
-        <p className="text-xs text-gray-500 font-medium">
-          Автор ідеї та функціонального прототипу: <span className="text-gray-400">Yevhenii Khomenko</span>
-        </p>
+      <div className="grid md:grid-cols-3 gap-6 w-full max-w-6xl relative z-10">
+        {/* Системний Адмін */}
+        <button 
+          onClick={() => handleDemoLogin('Системний Адміністратор', 'sysadmin')}
+          className="bg-[#121214]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] hover:border-blue-500/50 hover:bg-blue-900/10 transition-all text-left group shadow-xl"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform">
+            <Shield className="text-blue-500 w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">СуперАдмін (SaaS)</h2>
+          <p className="text-gray-400 text-sm">Керування всіма школами, білінгом та налаштуваннями платформи.</p>
+        </button>
+
+        {/* Директор */}
+        <button 
+          onClick={() => handleDemoLogin('Директор Гімназії', 'school_admin')}
+          className="bg-[#121214]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] hover:border-emerald-500/50 hover:bg-emerald-900/10 transition-all text-left group shadow-xl border-emerald-500/30"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+            <LayoutDashboard className="text-emerald-500 w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">Директор Школи</h2>
+          <p className="text-gray-400 text-sm">Керування мікрокліматом, розкладом, датчиками та безпекою.</p>
+        </button>
+
+        {/* Персонал */}
+        <button 
+          onClick={() => handleDemoLogin('Черговий Охоронець', 'staff')}
+          className="bg-[#121214]/80 backdrop-blur-xl border border-white/10 p-8 rounded-[2rem] hover:border-orange-500/50 hover:bg-orange-900/10 transition-all text-left group shadow-xl"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mb-6 border border-orange-500/20 group-hover:scale-110 transition-transform">
+            <Users className="text-orange-500 w-7 h-7" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">Персонал / Охорона</h2>
+          <p className="text-gray-400 text-sm">Доступ до тривожної кнопки, камер та базових сповіщень.</p>
+        </button>
       </div>
     </div>
   );

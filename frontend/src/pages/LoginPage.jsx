@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Activity, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Activity, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('school@admin.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const login = useAuthStore((state) => state.login);
+  const { login, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,10 +26,7 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      const success = await login(email, password);
-      if (success) {
-        navigate('/dashboard');
-      }
+      await login(email, password, rememberMe);
     } catch (err) {
       setError(err.message || 'Невірний логін або пароль');
     } finally {
@@ -38,18 +43,18 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.4)] mb-6">
             <Activity size={24} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Вхід у систему</h1>
-          <p className="text-gray-400 text-center text-sm">Керування екосистемою EduSense</p>
+          <h1 className="text-3xl font-bold text-white mb-2 text-center">EduSense</h1>
+          <p className="text-gray-400 text-center text-sm">Введіть дані для входу в систему</p>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-400 text-sm">
-            <AlertCircle size={18} />
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleLogin} className="space-y-5 bg-[#121214]/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 shadow-2xl">
+          {error && (
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-400 text-sm animate-in fade-in duration-300">
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+
           <div>
             <label htmlFor="email" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Електронна пошта</label>
             <div className="relative">
@@ -58,7 +63,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email" 
-                autoComplete="email"
+                autoComplete="username"
                 required 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
@@ -84,6 +89,23 @@ export default function LoginPage() {
                 placeholder="••••••••" 
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between px-1">
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  className="sr-only" 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <div className={`w-5 h-5 rounded border transition-all flex items-center justify-center ${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-white/20 bg-white/5 group-hover:border-white/40'}`}>
+                  {rememberMe && <CheckCircle2 size={14} className="text-white" />}
+                </div>
+              </div>
+              <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Запам'ятати мене</span>
+            </label>
           </div>
 
           <button 
