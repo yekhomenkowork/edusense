@@ -25,9 +25,9 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#09090b] text-white selection:bg-blue-500/30 overflow-x-hidden font-sans">
       <nav className="fixed top-0 w-full z-50 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 font-bold text-xl tracking-tight cursor-pointer">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3 font-bold text-lg sm:text-xl tracking-tight cursor-pointer">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)] flex-shrink-0">
               <Activity size={18} className="text-white" />
             </div>
             EduSense
@@ -38,9 +38,12 @@ export default function LandingPage() {
             <a href="#technology" className="hover:text-white transition-colors">Технології</a>
             <a href="#pricing" className="hover:text-white transition-colors">Підписка</a>
           </div>
-          <div className="flex gap-4 items-center">
-            <a href="/demo" className="hidden sm:block text-sm font-medium text-gray-300 hover:text-white transition-colors">Демо</a>
-            <a href="/login" className="px-5 py-2.5 text-sm font-semibold text-white bg-white/10 border border-white/10 rounded-full hover:bg-white/20 transition-all flex items-center gap-2"><Lock size={14} /> Вхід</a>
+          <div className="flex gap-3 sm:gap-4 items-center">
+            {/* Кнопка Демо тепер видима на мобільних пристроях і виділена кольором */}
+            <a href="/demo" className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wide">Демо</a>
+            <a href="/login" className="px-4 py-2 sm:px-5 sm:py-2.5 text-sm font-semibold text-white bg-white/10 border border-white/10 rounded-full hover:bg-white/20 transition-all flex items-center gap-2">
+              <Lock size={14} /> Вхід
+            </a>
           </div>
         </div>
       </nav>
@@ -54,7 +57,8 @@ export default function LandingPage() {
           <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter mb-8 leading-[1.05]">Екосистема <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">безпечної школи.</span></motion.h1>
           <motion.p variants={fadeUp} className="text-xl text-gray-400 mb-12 max-w-2xl leading-relaxed">Забудьте про застарілі системи. Керуйте аудіо-навігацією, мікрокліматом та безпекою з єдиного хмарного центру управління.</motion.p>
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <button className="flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-500 transition-all hover:scale-105 shadow-[0_0_30px_rgba(37,99,235,0.3)]">Почати інтеграцію <ChevronRight size={20} /></button>
+            {/* Головна кнопка тепер теж веде на Демо */}
+            <a href="/demo" className="flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-500 transition-all hover:scale-105 shadow-[0_0_30px_rgba(37,99,235,0.3)]">Почати інтеграцію <ChevronRight size={20} /></a>
             <button className="flex items-center justify-center gap-2 px-8 py-4 bg-white/5 text-white border border-white/10 rounded-full font-semibold hover:bg-white/10 transition-all group"><Play size={20} className="fill-transparent group-hover:fill-white transition-all" /> Дивитись презентацію</button>
           </motion.div>
         </motion.div>
@@ -186,16 +190,16 @@ export default function LandingPage() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUp} className="max-w-4xl mx-auto text-center relative z-10 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 backdrop-blur-xl border border-blue-500/20 p-12 md:p-20 rounded-[3rem] shadow-2xl">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Готові трансформувати свій заклад?</h2>
           <p className="text-xl text-blue-200 mb-10 max-w-2xl mx-auto">Зробіть крок у майбутнє управління шкільною інфраструктурою вже сьогодні.</p>
-          <button className="px-10 py-5 bg-white text-black rounded-full font-bold text-lg hover:bg-gray-200 hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center gap-2 mx-auto">Отримати доступ <ArrowUpRight size={24} /></button>
+          {/* Кнопка внизу також веде на Демо */}
+          <a href="/demo" className="px-10 py-5 bg-white text-black rounded-full font-bold text-lg hover:bg-gray-200 hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 mx-auto w-max">Отримати доступ <ArrowUpRight size={24} /></a>
         </motion.div>
       </section>
 
-      {/* Оновлений футер з потрібним текстом */}
       <footer className="border-t border-white/5 bg-[#09090b] pt-12 pb-8 px-6 text-gray-500">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
           <div className="flex items-center gap-2 font-bold text-white text-lg"><Activity size={20} className="text-blue-500" /> EduSense</div>
           
-          <div className="text-center">
+          <div className="flex flex-col items-center">
             <p className="text-sm">© 2026 EduSense Cloud Platform. Всі права захищено.</p>
             <p className="text-sm mt-1">Автор ідеї та функціонального прототипу: <strong className="text-gray-300">Yevhenii Khomenko</strong></p>
           </div>
