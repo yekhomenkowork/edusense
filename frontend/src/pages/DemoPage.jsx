@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function DemoPage() {
@@ -11,14 +11,15 @@ export default function DemoPage() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    
-    // Демонстраційна логіка (Mock Auth)
     let role = 'staff';
     let name = 'Охоронець / Працівник';
 
     if (email.includes('sys')) {
       role = 'system_admin';
       name = 'Головний Адміністратор';
+    } else if (email.includes('staff')) {
+      role = 'staff';
+      name = 'Старший охоронець';
     } else if (email.includes('school')) {
       role = 'school_admin';
       name = 'Директор Школи №1';
@@ -67,6 +68,13 @@ export default function DemoPage() {
             Увійти в Демо <ArrowRight size={18} />
           </button>
         </form>
+      </div>
+
+      {/* АВТОРСЬКИЙ ПІДВАЛ (АБСОЛЮТНЕ ПОЗИЦІЮВАННЯ ВНИЗУ) */}
+      <div className="absolute bottom-6 w-full text-center z-10 px-4">
+        <p className="text-xs text-gray-500 font-medium">
+          Автор ідеї та функціонального прототипу: <span className="text-gray-400">Yevhenii Khomenko</span>
+        </p>
       </div>
     </div>
   );

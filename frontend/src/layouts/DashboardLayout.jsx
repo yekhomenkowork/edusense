@@ -3,7 +3,6 @@ import { Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-d
 import { useAuthStore } from '../store/authStore';
 import { Activity, LogOut, LayoutDashboard, Building2, Settings, ShieldAlert, Mic2, Users, BellRing, Network } from 'lucide-react';
 
-// Конфігурація доступу (RBAC)
 const MENU_ITEMS = {
   system_admin: [
     { title: 'Огляд системи', path: '/dashboard', icon: <LayoutDashboard size={20}/> },
@@ -31,12 +30,10 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Якщо не авторизований - викидаємо на сторінку ДЕМО (як ти і просив)
   if (!isAuthenticated) return <Navigate to="/demo" replace />;
 
   const currentMenu = MENU_ITEMS[user?.role] || [];
 
-  // Функція виходу
   const handleLogout = () => {
     logout();
     navigate('/demo');
@@ -44,14 +41,8 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-[#09090b] flex text-white font-sans">
-      {/* Бічне меню (Sidebar) */}
       <aside className="w-72 bg-[#121214] border-r border-white/5 flex flex-col">
-        
-        {/* КЛІКАБЕЛЬНИЙ ЛОГОТИП */}
-        <Link 
-          to="/" 
-          className="h-16 flex items-center gap-3 px-6 border-b border-white/5 hover:bg-white/[0.02] transition-colors group cursor-pointer"
-        >
+        <Link to="/" className="h-16 flex items-center gap-3 px-6 border-b border-white/5 hover:bg-white/[0.02] transition-colors group cursor-pointer">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.4)] group-hover:scale-105 transition-transform">
             <Activity size={18} className="text-white" />
           </div>
@@ -66,18 +57,9 @@ export default function DashboardLayout() {
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {currentMenu.map((item) => {
-            // Підсвічуємо пункт меню, якщо шлях співпадає
             const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== '/dashboard');
             return (
-              <Link 
-                key={item.path} 
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive 
-                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
+              <Link key={item.path} to={item.path} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                 {item.icon}
                 <span className="font-medium">{item.title}</span>
               </Link>
@@ -86,18 +68,21 @@ export default function DashboardLayout() {
         </nav>
 
         <div className="p-4 border-t border-white/5">
-          <button 
-            onClick={handleLogout} 
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-400 hover:bg-red-500/10 transition-colors font-medium"
-          >
+          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-400 hover:bg-red-500/10 transition-colors font-medium">
             <LogOut size={20} /> Вийти
           </button>
         </div>
+        
+        {/* АВТОРСЬКИЙ ПІДВАЛ */}
+        <div className="pb-6 text-center px-4">
+          <div className="text-[10px] text-gray-500 leading-relaxed bg-black/30 p-2 rounded-lg border border-white/5">
+            Автор ідеї та прототипу:<br/>
+            <span className="text-gray-400 font-bold tracking-wide">Yevhenii Khomenko</span>
+          </div>
+        </div>
       </aside>
 
-      {/* Головна зона контенту */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        {/* Topbar */}
         <header className="h-16 bg-[#121214]/80 backdrop-blur-md border-b border-white/5 flex items-center px-8 justify-between relative z-10">
           <h2 className="text-xl font-semibold text-gray-200">Панель управління</h2>
           <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
@@ -108,8 +93,6 @@ export default function DashboardLayout() {
             <span className="text-xs font-medium text-gray-300">Система активна</span>
           </div>
         </header>
-
-        {/* Контент сторінки рендериться тут */}
         <div className="flex-1 overflow-auto p-8 relative z-0">
           <Outlet />
         </div>
