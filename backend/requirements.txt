@@ -4,3 +4,6 @@ psycopg2-binary
 paho-mqtt
 pydantic
 sqlalchemy
+python-jose[cryptography]
+bcrypt==3.2.0
+passlib==1.7.4
