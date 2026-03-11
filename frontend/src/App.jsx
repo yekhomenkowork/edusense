@@ -11,6 +11,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
 
 // Сторінки System Admin
+import AdminOverviewPage from './pages/AdminOverviewPage';
 import AdminSchoolsPage from './pages/AdminSchoolsPage';
 import AdminSchoolDetailsPage from './pages/AdminSchoolDetailsPage';
 import AdminBillingPage from './pages/AdminBillingPage';
@@ -36,7 +37,8 @@ export default function App() {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
           
-          {/* Маршрути Головного Адміністратора */}
+          {/* Маршрути Головного Адміністратора (SaaS) */}
+          <Route path="overview" element={<AdminOverviewPage />} />
           <Route path="schools" element={<AdminSchoolsPage />} />
           <Route path="schools/:id" element={<AdminSchoolDetailsPage />} />
           <Route path="billing" element={<AdminBillingPage />} />
@@ -48,6 +50,7 @@ export default function App() {
           <Route path="security" element={<SchoolSecurityPage />} />
           <Route path="staff" element={<SchoolStaffPage />} />
           <Route path="devices" element={<SchoolDevicesPage />} />
+          
           {/* Маршрути Охоронця (Staff) */}
           <Route path="guard" element={<StaffGuardPage />} />
           <Route path="alert" element={<StaffAlertPage />} />

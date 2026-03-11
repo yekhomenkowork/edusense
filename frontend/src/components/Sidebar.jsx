@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Mic2, ShieldAlert, Users, 
   Settings, LogOut, Activity, ChevronLeft, ChevronRight, HardDrive,
-  Building2, CreditCard, Code, Shield, Bell
+  Building2, CreditCard, Code, Shield, Bell, TerminalSquare
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
@@ -14,9 +14,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
   let menuItems = [];
 
-  // Динамічні пункти меню
   if (user?.role === 'sysadmin') {
     menuItems = [
+      { id: 'overview', icon: Activity, label: 'Системний Дашборд', path: '/dashboard/overview' },
       { id: 'schools', icon: Building2, label: 'Управління школами', path: '/dashboard/schools' },
       { id: 'billing', icon: CreditCard, label: 'Білінг та Тарифи', path: '/dashboard/billing' },
       { id: 'api', icon: Code, label: 'API Інтеграції', path: '/dashboard/api' },
@@ -33,21 +33,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       { id: 'audio', icon: Mic2, label: 'Аудіо-Хаб та Розклад', path: '/dashboard/audio' },
       { id: 'security', icon: ShieldAlert, label: 'Сценарії безпеки', path: '/dashboard/security' },
       { id: 'staff', icon: Users, label: 'Персонал', path: '/dashboard/staff' },
-      { id: 'devices', icon: Settings, label: 'Налаштування пристроїв', path: '/dashboard/devices' },
+      { id: 'devices', icon: HardDrive, label: 'Пристрої', path: '/dashboard/devices' },
     ];
   }
 
-  // Розумний вихід
   const handleLogout = () => {
-    // Перевіряємо, чи це демо-акаунт (за email)
     const isDemoSession = user?.email?.startsWith('demo_');
     logout();
-    
-    if (isDemoSession) {
-      navigate('/demo');
-    } else {
-      navigate('/login');
-    }
+    navigate(isDemoSession ? '/demo' : '/login');
   };
 
   const getRoleDisplayName = (role) => {
@@ -65,19 +58,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
 
-      {/* Логотип як кнопка "На головну" */}
-      <div 
-        onClick={() => navigate('/')}
-        className={`p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity ${isCollapsed ? 'justify-center' : ''}`}
-        title="Повернутися на головну сторінку"
-      >
+      <div onClick={() => navigate('/')} className={`p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity ${isCollapsed ? 'justify-center' : ''}`}>
         <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
           <Activity size={18} className="text-white" />
         </div>
         {!isCollapsed && <span className="text-xl font-bold text-white tracking-tight">EduSense</span>}
       </div>
 
-      {/* Блок профілю в оригінальному стилі */}
       {!isCollapsed && (
         <div className="px-4 mb-8 mt-2">
           <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4">Профіль</p>
@@ -90,20 +77,17 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
       <nav className="flex-1 px-3 space-y-1">
         {menuItems.map((item) => {
-          const isActive = location.pathname === item.path || (location.pathname === '/dashboard' && item.path === '/dashboard/schools' && user?.role === 'sysadmin');
+          // Точна перевірка маршруту
+          const isActive = location.pathname === item.path || (location.pathname === '/dashboard' && item.path === '/dashboard/overview' && user?.role === 'sysadmin');
           return (
             <button
               key={item.id}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-all group ${
-                isActive ? 'bg-blue-600/10 text-blue-400' : 'text-gray-500 hover:bg-white/5 hover:text-gray-300'
-              } ${isCollapsed ? 'justify-center' : ''}`}
+              className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-all group ${isActive ? 'bg-blue-600/10 text-blue-400' : 'text-gray-500 hover:bg-white/5 hover:text-gray-300'} ${isCollapsed ? 'justify-center' : ''}`}
               title={isCollapsed ? item.label : ''}
             >
               <item.icon size={20} className={isActive ? 'text-blue-500' : 'group-hover:text-gray-300'} />
               {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
-              
-              {/* Синя крапка для активного меню */}
               {isActive && !isCollapsed && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />}
             </button>
           );
@@ -111,24 +95,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
       </nav>
 
       <div className="p-4 border-t border-white/5 space-y-4">
-        <button 
-          onClick={handleLogout}
-          className={`w-full flex items-center gap-3 p-3.5 text-red-500/70 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all ${isCollapsed ? 'justify-center' : ''}`}
-          title="Вийти"
-        >
+        <button onClick={handleLogout} className={`w-full flex items-center gap-3 p-3.5 text-red-500/70 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-all ${isCollapsed ? 'justify-center' : ''}`}>
           <LogOut size={20} />
           {!isCollapsed && <span className="font-bold text-sm">Вийти</span>}
         </button>
-        
-        {/* Блок автора */}
-        {!isCollapsed && (
-          <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-            <p className="text-[9px] text-gray-600 uppercase text-center leading-relaxed">
-              Автор ідеї та прототипу:<br/>
-              <span className="text-gray-400 font-medium">Yevhenii Khomenko</span>
-            </p>
-          </div>
-        )}
       </div>
     </aside>
   );

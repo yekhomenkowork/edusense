@@ -14,6 +14,7 @@ class School(Base):
     city = Column(String)
     plan = Column(String, default="Trial")
     status = Column(String, default="Налаштування")
+    mqtt_password = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     users = relationship("User", back_populates="school")
