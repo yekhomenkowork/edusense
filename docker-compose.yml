@@ -54,10 +54,9 @@ services:
     container_name: edusense_backend
     restart: always
     env_file: .env
-    environment:
-      - LATEST_FW_VERSION=1.0.1
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./backend:/app
       # Змінено шлях до папки з прошивками
       - ./edge_devices/builds:/app/firmware

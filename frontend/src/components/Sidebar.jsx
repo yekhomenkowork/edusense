@@ -1,10 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, Mic2, ShieldAlert, Users, 
-  Settings, LogOut, Activity, ChevronLeft, ChevronRight, HardDrive,
-  Building2, CreditCard, Code, Shield, Bell, TerminalSquare
-} from 'lucide-react';
+import { LayoutDashboard, Mic2, ShieldAlert, Users, Settings, LogOut, Activity, ChevronLeft, ChevronRight, HardDrive, Building2, CreditCard, Code, Shield, Bell } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }) {
@@ -43,6 +39,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
     navigate(isDemoSession ? '/demo' : '/login');
   };
 
+  // РОЗУМНИЙ КЛІК ПО ЛОГОТИПУ
+  const handleLogoClick = () => {
+    if (user?.role === 'sysadmin') navigate('/dashboard/overview');
+    else if (user?.role === 'staff') navigate('/dashboard/guard');
+    else navigate('/dashboard');
+  };
+
   const getRoleDisplayName = (role) => {
     if (role === 'sysadmin') return 'System Admin';
     if (role === 'staff') return 'Security Staff';
@@ -58,7 +61,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
         {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
 
-      <div onClick={() => navigate('/')} className={`p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity ${isCollapsed ? 'justify-center' : ''}`}>
+      <div onClick={handleLogoClick} className={`p-6 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity ${isCollapsed ? 'justify-center' : ''}`}>
         <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
           <Activity size={18} className="text-white" />
         </div>
@@ -77,7 +80,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
 
       <nav className="flex-1 px-3 space-y-1">
         {menuItems.map((item) => {
-          // Точна перевірка маршруту
           const isActive = location.pathname === item.path || (location.pathname === '/dashboard' && item.path === '/dashboard/overview' && user?.role === 'sysadmin');
           return (
             <button

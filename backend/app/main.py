@@ -1,16 +1,21 @@
+import os
+import docker
+import psutil
+from datetime import datetime, timedelta
+from typing import List, Optional
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, ConfigDict
 from passlib.context import CryptContext
-from datetime import datetime, timedelta
 from jose import jwt
-from typing import List, Optional
 
-from app.database import SessionLocal
-from app.models.models import User, School
+# Імпорти для БД
+from app.database import SessionLocal, engine
+from app.models.models import Base, User, School
 
-app = FastAPI(title="EduSense API", docs_url="/docs", openapi_url="/openapi.json")
+app = FastAPI(title="EduSense API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,12 +26,42 @@ app.add_middleware(
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+SECRET_KEY = os.getenv("SECRET_KEY", "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7")
 ALGORITHM = "HS256"
 
 # ==========================================
-# СХЕМИ ДАНИХ (Pydantic Models)
+# АВТОМАТИЧНА ІНІЦІАЛІЗАЦІЯ ПРИ СТАРТІ
 # ==========================================
+@app.on_event("startup")
+def startup_event():
+    print("⏳ Перевірка та ініціалізація бази даних...", flush=True)
+    # 1. Створюємо таблиці, якщо їх немає
+    Base.metadata.create_all(bind=engine)
+    
+    db = SessionLocal()
+    try:
+        # 2. Читаємо дані адміна з .env
+        admin_email = os.getenv("DEFAULT_ADMIN_EMAIL", "superadmin@edusense.com")
+        admin_pass = os.getenv("DEFAULT_ADMIN_PASSWORD", "AdminPass2026!")
+        admin_name = os.getenv("DEFAULT_ADMIN_NAME", "System Administrator")
+        
+        # 3. Перевіряємо, чи існує такий користувач
+        admin_exists = db.query(User).filter(User.email == admin_email).first()
+        if not admin_exists:
+            print(f"🔧 Створення системного адміністратора: {admin_email}", flush=True)
+            hashed_pw = pwd_context.hash(admin_pass)
+            new_admin = User(name=admin_name, email=admin_email, hashed_password=hashed_pw, role="sysadmin")
+            db.add(new_admin)
+            db.commit()
+            print("✅ СуперАдмін успішно створений автоматично!", flush=True)
+        else:
+            print("✅ СуперАдмін вже існує. База готова до роботи.", flush=True)
+    except Exception as e:
+        print(f"❌ Помилка ініціалізації БД: {e}", flush=True)
+    finally:
+        db.close()
+
+# --- СХЕМИ ---
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -37,19 +72,13 @@ class SchoolBase(BaseModel):
     city: str
     plan: str = "Trial"
     status: str = "Налаштування"
-
-class SchoolCreate(SchoolBase):
-    pass
+    mqtt_password: Optional[str] = None
 
 class SchoolResponse(SchoolBase):
     id: int
     created_at: datetime
-    
     model_config = ConfigDict(from_attributes=True)
 
-# ==========================================
-# ЗАЛЕЖНОСТІ (Dependencies)
-# ==========================================
 def get_db():
     db = SessionLocal()
     try:
@@ -57,145 +86,175 @@ def get_db():
     finally:
         db.close()
 
-# ==========================================
-# ЕНДПОІНТИ (API Routes)
-# ==========================================
-@app.get("/api/health")
-def health():
-    return {"status": "ok", "port": 8000}
+# --- СИСТЕМНА ЛОГІКА (DOCKER & METRICS) ---
+def get_docker_client():
+    try:
+        return docker.from_env()
+    except Exception as e:
+        print(f"Docker Connect Error: {e}")
+        return None
 
+def get_real_uptime():
+    try:
+        with open('/proc/uptime', 'r') as f:
+            seconds = float(f.readline().split()[0])
+        h, m = int(seconds // 3600), int((seconds % 3600) // 60)
+        return f"{h}h {m}m"
+    except: return "Unknown"
+
+@app.get("/api/system/metrics")
+def get_metrics():
+    mem = psutil.virtual_memory()
+    return {
+        "cpu": psutil.cpu_percent(interval=0.1),
+        "ram_used": round(mem.used / (1024**3), 2),
+        "ram_total": round(mem.total / (1024**3), 2),
+        "ram_percent": mem.percent,
+        "uptime": get_real_uptime(),
+        "db_status": "Connected"
+    }
+
+@app.get("/api/system/containers")
+def get_containers():
+    client = get_docker_client()
+    if not client: return {"error": "Docker Socket inaccessible"}
+    return [{
+        "id": c.short_id,
+        "name": c.name,
+        "status": c.status,
+        "image": c.image.tags[0] if c.image.tags else "unknown"
+    } for c in client.containers.list(all=True)]
+
+@app.get("/api/system/containers/{name}/logs")
+def get_logs(name: str):
+    client = get_docker_client()
+    try:
+        container = client.containers.get(name)
+        logs = container.logs(tail=50).decode('utf-8', errors='replace').split('\n')
+        return {"logs": [l for l in logs if l.strip()]}
+    except: raise HTTPException(status_code=404)
+
+# --- AUTH & SCHOOLS ---
 @app.post("/api/auth/login")
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == request.email).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Користувача не знайдено")
-    
-    if not pwd_context.verify(request.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Невірний пароль")
-        
-    access_token = jwt.encode(
-        {"sub": user.email, "role": user.role, "exp": datetime.utcnow() + timedelta(days=1)}, 
-        SECRET_KEY, algorithm=ALGORITHM
-    )
-    
-    return {
-        "access_token": access_token,
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "role": user.role,
-            "school_id": user.school_id
-        }
-    }
-
-# --- НОВІ ЕНДПОІНТИ ДЛЯ ШКІЛ ---
+    if not user or not pwd_context.verify(request.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Невірні дані")
+    token = jwt.encode({"sub": user.email, "role": user.role, "exp": datetime.utcnow() + timedelta(days=1)}, SECRET_KEY, algorithm=ALGORITHM)
+    return {"access_token": token, "user": {"id": user.id, "name": user.name, "role": user.role}}
 
 @app.get("/api/schools", response_model=List[SchoolResponse])
-def get_schools(db: Session = Depends(get_db)):
-    """Отримати список усіх шкіл"""
+def list_schools(db: Session = Depends(get_db)):
     return db.query(School).all()
 
 @app.post("/api/schools", response_model=SchoolResponse)
-def create_school(school: SchoolCreate, db: Session = Depends(get_db)):
-    """Створити новий навчальний заклад"""
-    db_school = School(
-        name=school.name,
-        region=school.region,
-        city=school.city,
-        plan=school.plan,
-        status=school.status
-    )
+def create_school(school: SchoolBase, db: Session = Depends(get_db)):
+    db_school = School(**school.model_dump())
     db.add(db_school)
     db.commit()
     db.refresh(db_school)
     return db_school
 
-@app.get("/api/schools/{school_id}", response_model=SchoolResponse)
-def get_school(school_id: int, db: Session = Depends(get_db)):
-    """Отримати деталі однієї школи"""
-    school = db.query(School).filter(School.id == school_id).first()
-    if not school:
-        raise HTTPException(status_code=404, detail="Школу не знайдено")
-    return school
+@app.get("/api/schools/{id}", response_model=SchoolResponse)
+def get_school(id: int, db: Session = Depends(get_db)):
+    s = db.query(School).filter(School.id == id).first()
+    if not s: raise HTTPException(status_code=404)
+    return s
 
-@app.delete("/api/schools/{school_id}")
-def delete_school(school_id: int, db: Session = Depends(get_db)):
-    """Видалити школу"""
-    school = db.query(School).filter(School.id == school_id).first()
-    if not school:
-        raise HTTPException(status_code=404, detail="Школу не знайдено")
-    db.delete(school)
+@app.delete("/api/schools/{id}")
+def delete_school(id: int, db: Session = Depends(get_db)):
+    db.query(School).filter(School.id == id).delete()
     db.commit()
-    return {"message": "Школу успішно видалено"}
+    return {"ok": True}
 
-# --- СХЕМИ ДЛЯ КОРИСТУВАЧІВ ТА ОНОВЛЕННЯ ШКОЛИ ---
-class UserCreate(BaseModel):
-    name: str
-    email: str
-    password: str
-    role: str
-
-class UserResponse(BaseModel):
-    id: int
-    name: str
-    email: str
-    role: str
-    
-    model_config = ConfigDict(from_attributes=True)
-
-class SchoolUpdate(BaseModel):
-    plan: Optional[str] = None
-    status: Optional[str] = None
-    mqtt_password: Optional[str] = None
-
-# --- ЕНДПОІНТИ ДЛЯ КОРИСТУВАЧІВ ТА НАЛАШТУВАНЬ ---
-@app.get("/api/schools/{school_id}/users", response_model=List[UserResponse])
-def get_school_users(school_id: int, db: Session = Depends(get_db)):
-    """Отримати всіх користувачів конкретної школи"""
-    return db.query(User).filter(User.school_id == school_id).all()
-
-@app.post("/api/schools/{school_id}/users", response_model=UserResponse)
-def create_school_user(school_id: int, user: UserCreate, db: Session = Depends(get_db)):
-    """Створити нового користувача для школи"""
-    # Перевіряємо чи не зайнятий email
-    if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(status_code=400, detail="Користувач з таким email вже існує")
+@app.get("/api/system/containers/{name}/stats")
+def get_container_stats(name: str):
+    """Отримує реальні CPU та RAM для конкретного контейнера"""
+    client = get_docker_client()
+    if not client:
+        return {"cpu_percent": 0, "ram_mb": 0, "error": "No client"}
+    try:
+        container = client.containers.get(name)
+        # stream=False повертає миттєвий зліпок статистики
+        stats = container.stats(stream=False)
         
-    hashed_pw = pwd_context.hash(user.password)
-    db_user = User(
-        name=user.name,
-        email=user.email,
-        hashed_password=hashed_pw,
-        role=user.role,
-        school_id=school_id
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+        # Вираховуємо CPU (%)
+        cpu_delta = stats['cpu_stats']['cpu_usage']['total_usage'] - stats.get('precpu_stats', {}).get('cpu_usage', {}).get('total_usage', 0)
+        system_delta = stats['cpu_stats'].get('system_cpu_usage', 0) - stats.get('precpu_stats', {}).get('system_cpu_usage', 0)
+        cpu_percent = 0.0
+        if system_delta > 0 and cpu_delta > 0:
+            cpus = stats['cpu_stats'].get('online_cpus', 1)
+            cpu_percent = (cpu_delta / system_delta) * cpus * 100.0
+            
+        # Вираховуємо RAM (MB)
+        ram_usage = stats['memory_stats'].get('usage', 0)
+        # Віднімаємо кеш, щоб бачити реальне споживання пам'яті (як у htop)
+        cache = stats['memory_stats'].get('stats', {}).get('cache', 0)
+        real_ram = ram_usage - cache if ram_usage > cache else ram_usage
+        ram_mb = real_ram / (1024 * 1024)
+        
+        return {
+            "cpu_percent": round(cpu_percent, 2),
+            "ram_mb": round(ram_mb, 1)
+        }
+    except Exception as e:
+        return {"cpu_percent": 0, "ram_mb": 0, "error": str(e)}
 
-@app.delete("/api/users/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    """Видалити користувача"""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Користувача не знайдено")
-    db.delete(user)
-    db.commit()
-    return {"message": "Видалено"}
+@app.get("/api/system/logs/aggregated")
+def get_aggregated_logs(period: str = "24h"):
+    """Сканує логи всіх контейнерів на наявність помилок та попереджень за період"""
+    client = get_docker_client()
+    if not client:
+        return {"error": "Docker Socket inaccessible"}
+    
+    # Розрахунок часу (since)
+    since_time = None
+    now = datetime.utcnow()
+    if period == "1h": since_time = now - timedelta(hours=1)
+    elif period == "24h": since_time = now - timedelta(hours=24)
+    elif period == "7d": since_time = now - timedelta(days=7)
+    elif period == "30d": since_time = now - timedelta(days=30)
 
-@app.patch("/api/schools/{school_id}", response_model=SchoolResponse)
-def update_school(school_id: int, school_update: SchoolUpdate, db: Session = Depends(get_db)):
-    """Оновити налаштування школи (MQTT, Підписка)"""
-    db_school = db.query(School).filter(School.id == school_id).first()
-    if not db_school:
-        raise HTTPException(status_code=404, detail="Школу не знайдено")
-    
-    if school_update.plan is not None: db_school.plan = school_update.plan
-    if school_update.status is not None: db_school.status = school_update.status
-    if school_update.mqtt_password is not None: db_school.mqtt_password = school_update.mqtt_password
-    
-    db.commit()
-    db.refresh(db_school)
-    return db_school
+    aggregated_events = []
+    stats = {"errors": 0, "warnings": 0}
+
+    try:
+        for c in client.containers.list(all=True):
+            # Беремо логи тільки за потрібний час
+            logs_bytes = c.logs(since=since_time, timestamps=True, tail=2000)
+            logs_str = logs_bytes.decode('utf-8', errors='replace').split('\n')
+            
+            for line in logs_str:
+                if not line.strip(): continue
+                
+                # Примітивний парсер рівня логування
+                level = "INFO"
+                is_error = "error" in line.lower() or "exception" in line.lower() or "traceback" in line.lower()
+                is_warn = "warn" in line.lower()
+
+                if is_error:
+                    level = "ERROR"
+                    stats["errors"] += 1
+                elif is_warn:
+                    level = "WARN"
+                    stats["warnings"] += 1
+                
+                # Додаємо у список тільки помилки та попередження для економії трафіку
+                if is_error or is_warn:
+                    # Розділяємо таймстемп Docker (перше слово) і саме повідомлення
+                    parts = line.split(" ", 1)
+                    timestamp = parts[0][:19].replace("T", " ") if len(parts) > 0 else ""
+                    msg = parts[1] if len(parts) > 1 else line
+                    
+                    aggregated_events.append({
+                        "container": c.name,
+                        "timestamp": timestamp,
+                        "level": level,
+                        "message": msg[:200] + "..." if len(msg) > 200 else msg
+                    })
+        
+        # Сортуємо від найновіших до найстаріших
+        aggregated_events.sort(key=lambda x: x["timestamp"], reverse=True)
+        return {"stats": stats, "events": aggregated_events[:100]} # Віддаємо топ-100
+    except Exception as e:
+        return {"error": str(e)}
