@@ -1,21 +1,27 @@
 import os
+import re
+from pathlib import Path
 
-class Settings:
-    PROJECT_NAME: str = "EduSense Cloud API"
-    
-    # Database
-    DB_NAME: str = os.getenv("DB_NAME", "edusense_db")
-    DB_USER: str = os.getenv("DB_USER", "eduser")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "eduser_pass")
-    DB_HOST: str = "db"
-    
-    # Збираємо URL для бази даних
-    DATABASE_URL: str = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
-    
-    # MQTT
-    MQTT_USER: str = os.getenv("MQTT_USER", "mqtt_user")
-    MQTT_PASSWORD: str = os.getenv("MQTT_PASSWORD", "mqtt_pass")
-    MQTT_HOST: str = "mosquitto"
-    MQTT_PORT: int = 1883
+from sqlalchemy import URL
 
-settings = Settings()
+
+def required(name, minimum=1):
+    path = os.getenv(f"{name}_FILE")
+    value = Path(path).read_text().rstrip("\r\n") if path else os.getenv(name, "")
+    if len(value) < minimum or value.startswith("CHANGE_ME"):
+        raise RuntimeError(f"Missing or invalid {name}")
+    return value
+
+
+def database_url(role="APP"):
+    username = required(f"DB_{role}_USER")
+    if not re.fullmatch(r"[a-z_][a-z0-9_]{0,62}", username):
+        raise RuntimeError(f"Invalid DB_{role}_USER")
+    database = required("DB_NAME")
+    if not re.fullmatch(r"[a-z_][a-z0-9_]{0,62}", database):
+        raise RuntimeError("Invalid DB_NAME")
+    return URL.create(
+        "postgresql+psycopg", username=username,
+        password=required(f"DB_{role}_PASSWORD", 24),
+        host=os.getenv("DB_HOST", "db"), port=5432, database=database,
+    )

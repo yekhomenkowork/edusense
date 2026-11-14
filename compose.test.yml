@@ -1,0 +1,42 @@
+services:
+  backend_test:
+    profiles: [test]
+    build: {context: ./backend, target: test}
+    command: [python, -m, pytest, -q, -p, no:cacheprovider]
+    network_mode: none
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  frontend_test:
+    profiles: [test]
+    build: {context: ./frontend, target: test}
+    network_mode: none
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  integration:
+    profiles: [test]
+    build: ./tests/docker
+    command: [python, /tests/integration.py]
+    environment:
+      PGHOST: db
+      PGDATABASE: edusense_test
+      PGUSER: edusense_owner
+    volumes:
+      - ./.local-test:/fixture
+    networks: [web, mqtt, database]
+    read_only: true
+    tmpfs: [/tmp, /var/lib/postgresql/data]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  scanner:
+    profiles: [test]
+    image: aquasec/trivy:0.74.0
+    command: [fs, --scanners, 'vuln,secret,misconfig', --severity, 'HIGH,CRITICAL', --exit-code, '1', /source]
+    volumes:
+      - ./.local-test/source:/source:ro
+      - ./.local-test/images:/images:ro
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]

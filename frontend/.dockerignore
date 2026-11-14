@@ -1,0 +1,10 @@
+**
+!package*.json
+!index.html
+!vite.config.js
+!eslint.config.js
+!nginx.conf
+!src/
+!src/**
+!public/
+!public/**

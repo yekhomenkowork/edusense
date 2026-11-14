@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, Activity, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Activity, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [otp, setOtp] = useState('');
   
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      await login(email, password, rememberMe);
+      await login(email, password, otp);
     } catch (err) {
       setError(err.message || 'Невірний логін або пароль');
     } finally {
@@ -91,21 +91,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-1">
-            <label className="flex items-center gap-2 cursor-pointer group">
-              <div className="relative">
-                <input 
-                  type="checkbox" 
-                  className="sr-only" 
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <div className={`w-5 h-5 rounded border transition-all flex items-center justify-center ${rememberMe ? 'bg-blue-600 border-blue-600' : 'border-white/20 bg-white/5 group-hover:border-white/40'}`}>
-                  {rememberMe && <CheckCircle2 size={14} className="text-white" />}
-                </div>
-              </div>
-              <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Запам'ятати мене</span>
-            </label>
+          <div>
+            <label htmlFor="otp" className="block text-xs text-gray-400 mb-2">Одноразовий код адміністратора</label>
+            <input id="otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}"
+              value={otp} onChange={(e) => setOtp(e.target.value)}
+              className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white" />
           </div>
 
           <button 

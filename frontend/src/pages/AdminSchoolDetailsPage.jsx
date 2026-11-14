@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Building2, ArrowLeft, Users, Shield, Server, UserPlus, Key, CreditCard, Trash2 } from 'lucide-react';
+import { Building2, ArrowLeft, Users, Shield, Server, UserPlus, CreditCard, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function AdminSchoolDetailsPage() {
@@ -35,12 +35,12 @@ export default function AdminSchoolDetailsPage() {
 
   // Створення користувача
   const handleCreateUser = async () => {
-    if (!newUser.name || !newUser.email || !newUser.password) return alert('Заповніть всі поля');
+    if (!newUser.name || !newUser.email) return alert('Заповніть всі поля');
     try {
       const res = await fetch(`${API_URL}/schools/${id}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(newUser)
+        body: JSON.stringify({ ...newUser, password: newUser.password || undefined })
       });
       if (res.ok) {
         setIsUserModalOpen(false);
@@ -55,9 +55,9 @@ export default function AdminSchoolDetailsPage() {
 
   // Видалення користувача
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Видалити користувача?')) return;
+    if (!window.confirm('Відкликати членство в цій школі?')) return;
     try {
-      const res = await fetch(`${API_URL}/users/${userId}`, {
+      const res = await fetch(`${API_URL}/schools/${id}/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -69,18 +69,12 @@ export default function AdminSchoolDetailsPage() {
   const handleUpdateSchool = async (updateData) => {
     try {
       const res = await fetch(`${API_URL}/schools/${id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify({ ...school, ...updateData })
       });
       if (res.ok) fetchData();
     } catch (error) { console.error(error); }
-  };
-
-  const generateMQTTPassword = () => {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    const password = Array.from({length: 16}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    handleUpdateSchool({ mqtt_password: password });
   };
 
   if (isLoading) return <div className="p-8 text-white">Завантаження...</div>;
@@ -158,23 +152,6 @@ export default function AdminSchoolDetailsPage() {
         {activeTab === 'settings' && (
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2"><Key className="text-blue-400"/> Доступи MQTT (Для ESP32)</h3>
-              <div className="bg-black/30 p-5 rounded-xl border border-white/5 space-y-4">
-                <div>
-                  <label className="text-xs text-gray-500 block mb-1">Device ID (MQTT Логін)</label>
-                  <input type="text" disabled value={`school_${school.id}_device`} className="w-full bg-black/50 border border-white/10 rounded-lg p-2.5 text-white font-mono text-sm opacity-70" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 block mb-1">MQTT Пароль</label>
-                  <div className="flex gap-2">
-                    <input type="text" readOnly value={school.mqtt_password || 'Не згенеровано'} className={`w-full bg-black/50 border border-white/10 rounded-lg p-2.5 font-mono text-sm ${school.mqtt_password ? 'text-white' : 'text-gray-500'}`} />
-                    <button onClick={generateMQTTPassword} className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">Згенерувати</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
               <h3 className="text-lg font-bold text-white flex items-center gap-2"><CreditCard className="text-emerald-400"/> Керування підпискою</h3>
               <div className="bg-black/30 p-5 rounded-xl border border-white/5 space-y-4">
                 <div>
@@ -223,7 +200,7 @@ export default function AdminSchoolDetailsPage() {
               </div>
               <div>
                 <label className="text-sm text-gray-400 block mb-1">Пароль доступу</label>
-                <input type="text" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white" placeholder="Мінімум 6 символів" />
+                <input type="password" autoComplete="new-password" minLength={16} value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-2.5 text-white" placeholder="16 символів для нового акаунта" />
               </div>
             </div>
             <div className="flex justify-end gap-3">

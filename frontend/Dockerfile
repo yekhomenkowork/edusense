@@ -1,23 +1,19 @@
-# Етап 1: Збірка React додатку
-FROM node:20-alpine AS builder
+FROM node:22.22.0-alpine AS tooling
 WORKDIR /app
-COPY package*.json ./
-# Використовуємо npm ci замість npm install для більш надійної і швидкої збірки
-RUN npm ci
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit
 COPY . .
+USER node
+
+FROM tooling AS test
+CMD ["node", "--test"]
+
+FROM tooling AS builder
+USER root
 RUN npm run build
 
-# Етап 2: Production сервер
-FROM nginx:stable-alpine
-# Видаляємо дефолтну статику та конфіг
-RUN rm -rf /usr/share/nginx/html/*
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Копіюємо наш оптимізований конфіг
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Копіюємо скомпільований React-код
+FROM nginx:1.28.2-alpine AS runtime
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+COPY nginx.conf /etc/nginx/nginx.conf
+USER 101:101
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

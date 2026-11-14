@@ -1,19 +1,20 @@
-import os
+from functools import lru_cache
+
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session
 
-# Читаємо URL бази з .env (який ми створили раніше)
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://edusense_admin:SuperSecretDBPassword123@db:5432/edusense_prod"
-)
+from app.core.config import database_url
 
-# Створюємо двигун підключення
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-# Створюємо фабрику сесій
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+class Base(DeclarativeBase):
+    pass
 
-# Базовий клас для наших моделей (саме його і не міг знайти Python!)
-Base = declarative_base()
+
+@lru_cache
+def get_engine():
+    return create_engine(database_url(), pool_pre_ping=True, connect_args={"connect_timeout": 5})
+
+
+def get_db():
+    with Session(get_engine()) as db:
+        yield db

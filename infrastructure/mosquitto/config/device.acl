@@ -1,0 +1,5 @@
+user edusense-worker
+topic read edusense/v1/devices/+/telemetry
+topic read edusense/v1/devices/+/state
+pattern write edusense/v1/devices/%u/telemetry
+pattern write edusense/v1/devices/%u/state

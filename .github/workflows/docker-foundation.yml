@@ -1,0 +1,51 @@
+name: Docker foundation
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  containers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      EDU_TEST_PROJECT: edusense-test-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare disposable configuration
+        run: |
+          mkdir .local-test
+          docker build -t edusense-test-fixtures tests/docker
+          docker run --rm --network none --tmpfs /var/lib/postgresql/data -v "$PWD/.local-test:/fixture" edusense-test-fixtures prepare-edusense-tests
+      - name: Unit, integration, persistence and restore checks
+        run: sh tests/docker/run-suite.sh "$EDU_TEST_PROJECT"
+      - name: Dependency and repository scans
+        run: |
+          mkdir -p .local-test/source .local-test/images
+          git archive --output=.local-test/source.tar HEAD
+          docker run --rm --network none --tmpfs /var/lib/postgresql/data -v "$PWD/.local-test:/fixture" edusense-test-fixtures tar -xf /fixture/source.tar -C /fixture/source
+          docker compose -p "$EDU_TEST_PROJECT" --env-file .local-test/.env -f docker-compose.yml -f compose.test.yml run --rm --no-deps scanner
+          docker run --rm --read-only --tmpfs /tmp -e XDG_CACHE_HOME=/tmp "$EDU_TEST_PROJECT-backend_test" pip-audit --cache-dir /tmp -r requirements.txt
+          docker run --rm --read-only --tmpfs /tmp -e npm_config_cache=/tmp "$EDU_TEST_PROJECT-frontend_test" npm audit --audit-level=high
+      - name: Scan Git history
+        run: |
+          docker run --rm --network none -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/repo -v "$PWD/.git:/repo/.git:ro" ghcr.io/gitleaks/gitleaks:v8.24.3 git --redact /repo
+      - name: Scan images and generate SBOM
+        run: |
+          mkdir -p sbom
+          for image in "$EDU_TEST_PROJECT-backend" "$EDU_TEST_PROJECT-migrate" "$EDU_TEST_PROJECT-mqtt_worker" "$EDU_TEST_PROJECT-frontend" "$EDU_TEST_PROJECT-backup" postgres:15.17-alpine eclipse-mosquitto:2.0.22; do
+            name=$(printf %s "$image" | tr ':' '_')
+            docker save "$image" -o ".local-test/images/$name.tar"
+            docker run --rm -v "$PWD/.local-test/images:/images:ro" aquasec/trivy:0.74.0 image --input "/images/$name.tar" --format cyclonedx >"sbom/$name.json"
+            docker run --rm -v "$PWD/.local-test/images:/images:ro" aquasec/trivy:0.74.0 image --input "/images/$name.tar" --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 1
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: edusense-sbom
+          path: sbom/

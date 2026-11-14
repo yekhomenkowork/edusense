@@ -1,101 +1,82 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean
-from sqlalchemy.orm import relationship
 from datetime import datetime
+from uuid import UUID
+
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, ForeignKeyConstraint, Index, String, UniqueConstraint, func
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.database import Base
 
-# ==========================================
-# 1. ОСНОВНІ СУТНОСТІ
-# ==========================================
+
 class School(Base):
     __tablename__ = "schools"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    region = Column(String)
-    city = Column(String)
-    plan = Column(String, default="Trial")
-    status = Column(String, default="Налаштування")
-    mqtt_password = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255))
+    region: Mapped[str | None]
+    city: Mapped[str | None]
+    plan: Mapped[str] = mapped_column(default="Trial")
+    status: Mapped[str] = mapped_column(default="Налаштування")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    users = relationship("User", back_populates="school")
-    devices = relationship("Device", back_populates="school")
-    audio_zones = relationship("AudioZone", back_populates="school")
-    scenarios = relationship("SecurityScenario", back_populates="school")
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    name = Column(String)
-    role = Column(String, default="staff") # sysadmin, school_admin, staff
-    school_id = Column(Integer, ForeignKey("schools.id"), nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str | None]
+    hashed_password: Mapped[str]
+    role: Mapped[str] = mapped_column(default="staff")
+    school_id: Mapped[int | None] = mapped_column(ForeignKey("schools.id"))
+    active: Mapped[bool] = mapped_column(default=True)
+    last_totp_step: Mapped[int | None]
 
-    school = relationship("School", back_populates="users")
 
-# ==========================================
-# 2. ESP32 ТА МІКРОКЛІМАТ (IoT)
-# ==========================================
+class Membership(Base):
+    __tablename__ = "school_memberships"
+    __table_args__ = (CheckConstraint("role IN ('school_admin', 'staff')"),)
+    school_id: Mapped[int] = mapped_column(ForeignKey("schools.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True, index=True)
+    role: Mapped[str]
+
+
+class LoginSession(Base):
+    __tablename__ = "login_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
 class Device(Base):
-    __tablename__ = "devices"
-    id = Column(Integer, primary_key=True, index=True)
-    mac_address = Column(String, unique=True, index=True, nullable=False)
-    room_name = Column(String, nullable=False)
-    status = Column(String, default="offline")
-    school_id = Column(Integer, ForeignKey("schools.id"))
-    last_seen = Column(DateTime, default=datetime.utcnow)
+    __tablename__ = "device_identities"
+    __table_args__ = (UniqueConstraint("school_id", "id"),)
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    school_id: Mapped[int] = mapped_column(ForeignKey("schools.id"), index=True)
+    name: Mapped[str]
+    enabled: Mapped[bool] = mapped_column(default=True)
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reported_state: Mapped[str | None]
 
-    school = relationship("School", back_populates="devices")
-    sensor_data = relationship("SensorData", back_populates="device")
 
-class SensorData(Base):
-    __tablename__ = "sensor_data"
-    id = Column(Integer, primary_key=True, index=True)
-    device_id = Column(Integer, ForeignKey("devices.id"))
-    temperature = Column(Float, nullable=True)
-    humidity = Column(Float, nullable=True)
-    co2_level = Column(Integer, nullable=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+class Reading(Base):
+    __tablename__ = "telemetry_readings"
+    __table_args__ = (
+        ForeignKeyConstraint(["school_id", "device_id"], ["device_identities.school_id", "device_identities.id"]),
+        Index("ix_reading_school_device_received", "school_id", "device_id", "received_at"),
+    )
+    device_id: Mapped[UUID] = mapped_column(primary_key=True)
+    message_id: Mapped[UUID] = mapped_column(primary_key=True)
+    metric: Mapped[str] = mapped_column(String(40), primary_key=True)
+    school_id: Mapped[int]
+    value: Mapped[float]
+    unit: Mapped[str] = mapped_column(String(20))
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
-    device = relationship("Device", back_populates="sensor_data")
 
-# ==========================================
-# 3. АУДІО ТА РОЗКЛАД
-# ==========================================
-class AudioZone(Base):
-    __tablename__ = "audio_zones"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    school_id = Column(Integer, ForeignKey("schools.id"))
-    
-    school = relationship("School", back_populates="audio_zones")
-    events = relationship("AudioEvent", back_populates="zone")
-
-class AudioEvent(Base):
-    __tablename__ = "audio_events"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    time = Column(String, nullable=False)
-    zone_id = Column(Integer, ForeignKey("audio_zones.id"))
-    
-    zone = relationship("AudioZone", back_populates="events")
-
-# ==========================================
-# 4. БЕЗПЕКА ТА СИСТЕМА
-# ==========================================
-class SecurityScenario(Base):
-    __tablename__ = "security_scenarios"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False) # Наприклад: Евакуація, Тривога
-    is_active = Column(Boolean, default=False)
-    school_id = Column(Integer, ForeignKey("schools.id"))
-
-    school = relationship("School", back_populates="scenarios")
-
-class SystemLog(Base):
-    __tablename__ = "system_logs"
-    id = Column(Integer, primary_key=True, index=True)
-    message = Column(String, nullable=False)
-    level = Column(String, default="INFO") # INFO, WARNING, ERROR, CRITICAL
-    timestamp = Column(DateTime, default=datetime.utcnow)
-    school_id = Column(Integer, ForeignKey("schools.id"), nullable=True)
+class AuditEvent(Base):
+    __tablename__ = "audit_events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    school_id: Mapped[int | None] = mapped_column(ForeignKey("schools.id"))
+    action: Mapped[str]
+    target: Mapped[str]
+    request_id: Mapped[str]
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

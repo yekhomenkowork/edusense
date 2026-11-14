@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, Search, Trash2, ShieldCheck, Activity, CreditCard } from 'lucide-react';
+import { Building2, Plus, Search, ShieldCheck, Activity, CreditCard } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 const ukraineRegions = [
@@ -57,20 +57,8 @@ export default function AdminSchoolsPage() {
     } catch (error) { console.error(error); } finally { setIsCreating(false); }
   };
 
-  const handleDelete = async (e, id) => {
-    e.stopPropagation();
-    if (!window.confirm("Ви дійсно хочете видалити цю школу? Цю дію неможливо скасувати.")) return;
-    try {
-      const res = await fetch(`${API_URL}/schools/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) fetchSchools();
-    } catch (error) { console.error(error); }
-  };
-
   const filteredSchools = schools.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.city.toLowerCase().includes(searchQuery.toLowerCase()) || s.id.toString() === searchQuery;
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || (s.city ?? '').toLowerCase().includes(searchQuery.toLowerCase()) || s.id.toString() === searchQuery;
     const matchesPlan = filterPlan === 'all' || s.plan === filterPlan;
     const matchesStatus = filterStatus === 'all' || s.status === filterStatus;
     return matchesSearch && matchesPlan && matchesStatus;
@@ -141,8 +129,8 @@ export default function AdminSchoolsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {isLoading ? <tr><td colSpan="5" className="p-8 text-center text-gray-500">Завантаження...</td></tr> : 
-             filteredSchools.length === 0 ? <tr><td colSpan="5" className="p-8 text-center text-gray-500">Шкіл не знайдено.</td></tr> :
+            {isLoading ? <tr><td colSpan="4" className="p-8 text-center text-gray-500">Завантаження...</td></tr> :
+             filteredSchools.length === 0 ? <tr><td colSpan="4" className="p-8 text-center text-gray-500">Шкіл не знайдено.</td></tr> :
              filteredSchools.map((school) => (
               <tr key={school.id} onClick={() => navigate(`/dashboard/schools/${school.id}`)} className="hover:bg-white/[0.04] cursor-pointer group">
                 <td className="p-4">
@@ -152,9 +140,6 @@ export default function AdminSchoolsPage() {
                 <td className="p-4 text-gray-300">{school.city}, {school.region} обл.</td>
                 <td className="p-4"><span className={`px-2.5 py-1 rounded-md text-xs font-medium ${school.plan === 'Premium' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>{school.plan}</span></td>
                 <td className="p-4"><span className={`${school.status === 'Активна' ? 'text-emerald-400' : 'text-yellow-400'}`}>{school.status}</span></td>
-                <td className="p-4 text-right">
-                  <button onClick={(e) => handleDelete(e, school.id)} className="p-2 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={18} /></button>
-                </td>
               </tr>
             ))}
           </tbody>

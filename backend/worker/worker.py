@@ -1,60 +1,93 @@
+import logging
 import os
-import time
+import signal
+import ssl
+from datetime import UTC, datetime
+from pathlib import Path
+
 import paho.mqtt.client as mqtt
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
-# Імпортуємо наші нові налаштування та моделі з папки app
-from app.core.config import settings
-from app.db.database import SessionLocal
-from app.models.models import SensorData
+from app.core.logging import configure_logging
+from app.database import get_engine
+from app.models.models import Device, Reading
+from worker.protocol import State, decode
 
-def save_sensor_data(school, device, topic, value):
-    db = SessionLocal()
-    try:
-        # Створюємо новий запис через ORM SQLAlchemy
-        new_data = SensorData(
-            school_name=school,
-            device_id=device,
-            topic=topic,
-            value=float(value)
-        )
-        db.add(new_data)
-        db.commit()
-    except Exception as e:
-        print(f"❌ DB Error: {e}")
-        db.rollback()
-    finally:
-        db.close()
+logger = logging.getLogger("edusense.worker")
+ready = Path("/tmp/mqtt-ready")
 
-def on_connect(client, userdata, flags, rc, properties=None):
-    if rc == 0:
-        print("✅ EduSense Worker успішно підключився до Mosquitto")
-        client.subscribe("edusense/#")
+
+def persist(db, topic, payload, retained):
+    identity, data = decode(topic, payload)
+    device = db.get(Device, identity, with_for_update=True)
+    if device is None or not device.enabled or retained:
+        return
+    now = datetime.now(UTC)
+    if isinstance(data, State):
+        device.reported_state = data.status
     else:
-        print(f"❌ Помилка підключення, код: {rc}")
+        for metric in data.metrics:
+            db.execute(insert(Reading).values(
+                device_id=device.id, school_id=device.school_id, message_id=data.message_id,
+                metric=metric.name, value=metric.value, unit=metric.unit, received_at=now,
+            ).on_conflict_do_nothing())
+        device.reported_state = "online"
+    device.last_seen = now
+    db.commit()
 
-def on_message(client, userdata, msg):
+
+def on_message(client, _data, message):
     try:
-        parts = msg.topic.split('/')
-        if len(parts) >= 4:
-            val = msg.payload.decode()
-            print(f"📩 Дані [{parts[1]} | {parts[2]}]: {parts[3]} = {val}")
-            save_sensor_data(parts[1], parts[2], parts[3], val)
-    except Exception as e:
-        print(f"⚠️ Worker Error: {e}")
+        with Session(get_engine()) as db:
+            persist(db, message.topic, message.payload, message.retain)
+    except ValueError:
+        logger.warning("invalid_mqtt_message")
+    except SQLAlchemyError:
+        logger.error("telemetry_database_error")
+        ready.unlink(missing_ok=True)
+        # The persistent broker session can redeliver the unacknowledged message.
+        os._exit(1)
+    if message.qos:
+        client.ack(message.mid, message.qos)
+
+
+def on_connect(client, _data, _flags, reason, _properties):
+    if not reason.is_failure:
+        client.subscribe([("edusense/v1/devices/+/telemetry", 1), ("edusense/v1/devices/+/state", 1)])
+
+
+def on_subscribe(_client, _data, _mid, reasons, _properties):
+    if len(reasons) == 2 and all(not reason.is_failure for reason in reasons):
+        ready.touch()
+
+
+def on_disconnect(_client, _data, _flags, _reason, _properties):
+    ready.unlink(missing_ok=True)
+
+
+def main():
+    configure_logging()
+    get_engine()
+    ready.unlink(missing_ok=True)
+    context = ssl.create_default_context(cafile="/run/worker-pki/ca.crt")
+    context.load_cert_chain("/run/worker-pki/worker.crt", "/run/worker-pki/worker.key")
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="edusense-worker",
+                         clean_session=False, manual_ack=True)
+    client.tls_set_context(context)
+    client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
+    client.on_disconnect = on_disconnect
+    client.on_message = on_message
+    client.reconnect_delay_set(1, 30)
+    signal.signal(signal.SIGTERM, lambda *_: client.disconnect())
+    client.connect_async("mosquitto", 8883, 30)
+    try:
+        client.loop_forever(retry_first_connection=True)
+    finally:
+        ready.unlink(missing_ok=True)
+
 
 if __name__ == "__main__":
-    print("⏳ Запуск MQTT Worker (очікування брокера 5 сек)...")
-    time.sleep(5)
-    
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-    client.username_pw_set(settings.MQTT_USER, settings.MQTT_PASSWORD)
-    client.on_connect = on_connect
-    client.on_message = on_message
-    
-    while True:
-        try:
-            client.connect(settings.MQTT_HOST, settings.MQTT_PORT, 60)
-            client.loop_forever()
-        except Exception as e:
-            print(f"⚠️ Втрачено зв'язок з Mosquitto: {e}. Реконект через 5 сек...")
-            time.sleep(5)
+    main()
