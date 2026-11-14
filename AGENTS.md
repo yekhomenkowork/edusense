@@ -3,6 +3,63 @@ Applies to all coding agents and automation working on this repository.
 Read this file before inspecting, editing, building, or running the project.
 User-facing progress, reviews, and reports must be in Ukrainian. Code and protocol identifiers may be in English.
 
+
+## Mandatory Docker-Only Build and Test Policy
+
+EduSense uses a strict Docker-first development workflow.
+
+All project-specific operations MUST run inside
+isolated Docker containers:
+
+- Dependency installation
+- Backend and frontend builds
+- Unit tests
+- Integration tests
+- Linters and formatters
+- Static code analysis
+- Database migrations
+- Firmware build toolchains where practical
+- Security scanning tools
+
+Never install or execute project runtimes or dependencies
+directly on the Windows host.
+
+Do not use host Python, pip, Node.js, npm, pytest,
+ruff, ESLint, or similar tools.
+
+The host should only require:
+- Git
+- Docker Engine or Docker Desktop
+- Docker Compose
+- The editor and Codex environment
+
+Production startup:
+    docker compose up -d --build
+
+Automated testing must use isolated Docker Compose
+services with dedicated test data and volumes.
+
+Do not run destructive tests against development
+or production databases.
+
+Do not request elevated Windows permissions merely
+to execute locally installed test packages.
+
+If Docker is unavailable in the agent execution
+environment:
+- Do not fall back to host execution.
+- Do not bypass sandbox restrictions.
+- Mark Docker-dependent tests as NOT RUN.
+- Explain the limitation.
+- Provide containerized commands for manual execution.
+
+Docker commands must only target authorized
+EduSense resources in an isolated environment.
+
+Never mount the host Docker socket inside an
+application container.
+
+
 1. Mission and non-negotiable invariants
 EduSense is a secure, multi-tenant, offline-capable IoT platform for Ukrainian educational institutions. Its target architecture has three layers: EduSense Cloud, School Edge Gateway, and ESP32 devices. Existing code is pre-alpha: inspect actual implementation first; never assume that planned features already work.
 
